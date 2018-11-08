@@ -1,0 +1,139 @@
+#include "robot-config.h"
+/*---------------------------------------------------------------------------*/
+/*                                                                           */
+/*        Description: Competition template for VCS VEX V5                   */
+/*                                                                           */
+/*---------------------------------------------------------------------------*/
+
+//Creates a competition object that allows access to Competition methods.
+vex::competition    Competition;
+
+/*---------------------------------------------------------------------------*/
+/*                          Pre-Autonomous Functions                         */
+/*                                                                           */
+/*  You may want to perform some actions before the competition starts.      */
+/*  Do them in the following function.  You must return from this function   */
+/*  or the autonomous and usercontrol tasks will not be started.  This       */
+/*  function is only called once after the cortex has been powered on and    */
+/*  not every time that the robot is disabled.                               */
+/*---------------------------------------------------------------------------*/
+
+void pre_auton( void ) {
+    SpinnerTop.setVelocity(120,velocityUnits::pct);
+    SpinnerBottom.setVelocity(120,velocityUnits::pct);
+    FlippingLad.setVelocity(120,velocityUnits::pct);
+    Intake.setVelocity(120,velocityUnits::rpm);
+    SpinnerTop.setRotation(0,rotationUnits::rev);
+    SpinnerBottom.setRotation(0,rotationUnits::rev);
+  // All activities that occur before the competition starts
+  // Example: clearing encoders, setting servo positions, ...
+  
+}
+
+/*---------------------------------------------------------------------------*/
+/*                                                                           */
+/*                              Autonomous Task                              */
+/*                                                                           */
+/*  This task is used to control your robot during the autonomous phase of   */
+/*  a VEX Competition.                                                       */
+/*                                                                           */
+/*  You must modify the code to add your own robot specific commands here.   */
+/*---------------------------------------------------------------------------*/
+
+void autonomous( void ) 
+{   RightDrive.setRotation(0,rotationUnits::rev);
+    LeftDrive.setRotation(0,rotationUnits::rev);
+//while (1)
+{LeftDrive.startRotateFor(4,rotationUnits::rev,40,velocityUnits::pct);
+RightDrive.startRotateFor(4,rotationUnits::rev,40,velocityUnits::pct);
+//if (RightDrive.rotation(rotationUnits::rev)>3.5){
+  SpinnerTop.spin(directionType::rev);
+  SpinnerBottom.spin(directionType::rev);
+  Intake.spin(directionType::fwd);
+  task::sleep(4000);
+  Controller1.rumble(".-.-");
+//}
+if (RightDrive.rotation(rotationUnits::rev)>3.5)
+{
+    Diverter.rotateTo(-45,rotationUnits::deg);
+    Uptake.rotateFor(100,rotationUnits::deg);
+    task::sleep(500);
+    Diverter.rotateTo(0, rotationUnits::deg);
+    Uptake.rotateFor(100,rotationUnits::deg);
+    task::sleep(1000);
+    LeftDrive.startRotateTo(8,rotationUnits::rev,100,velocityUnits::pct);
+    RightDrive.startRotateTo(8,rotationUnits::rev,100,velocityUnits::pct);
+}
+}
+}
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*                              User Control Task                             */
+/*                                                                            */
+/*  This task is used to control your robot during the user control phase of  */
+/*  a VEX Competition.                                                        */
+/*                                                                            */
+/*  You must modify the code to add your own robot specific commands here.    */
+/*----------------------------------------------------------------------------*/
+
+void usercontrol( void )
+{
+  // User control code here, inside the loop
+  while (1){
+     LeftDrive.spin(vex::directionType::fwd, (Controller1.Axis3.value() + Controller1.Axis1.value()), vex::velocityUnits::pct);
+     RightDrive.spin(vex::directionType::fwd, (Controller1.Axis3.value() - Controller1.Axis1.value()), vex::velocityUnits::pct);
+   if(Controller1.ButtonR2.pressing()){ 
+    SpinnerTop.spin(directionType::rev);
+    SpinnerBottom.spin(directionType::rev);
+}
+    else{
+    SpinnerTop.stop(brakeType::coast);
+    SpinnerBottom.stop(brakeType::coast);
+    }
+   if(Controller1.ButtonR1.pressing()){
+       Uptake.rotateFor(100,rotationUnits::deg,25,velocityUnits::pct);
+       //Uptake.spin(directionType::fwd,50,velocityUnits::rpm);
+   }
+   if(Controller1.ButtonL1.pressing()){
+       Intake.spin(directionType::fwd);
+   
+   }
+   else{
+       Intake.stop(brakeType::brake);
+   }
+   if(Controller1.ButtonA.pressing()){
+    Diverter.rotateTo(-90,rotationUnits::deg,25,velocityUnits::pct);
+   }
+   else{Diverter.rotateTo(0,rotationUnits::deg,25,velocityUnits::pct);
+       }
+ if (Controller1.ButtonX.pressing()){
+  FlippingLad.spin(directionType::fwd);
+ }
+ else if (Controller1.ButtonY.pressing()){
+  FlippingLad.spin(directionType::rev);
+   
+ }
+ else{
+     FlippingLad.stop(brakeType::hold);
+ }
+  }
+}
+
+//
+// Main will set up the competition functions and callbacks.
+//
+int main() {
+    
+    //Run the pre-autonomous function. 
+    pre_auton();
+    
+    //Set up callbacks for autonomous and driver control periods.
+    Competition.autonomous( autonomous );
+    Competition.drivercontrol( usercontrol );
+
+    //Prevent main from exiting with an infinite loop.                        
+    while(1) {
+      vex::task::sleep(100);//Sleep the task for a short amount of time to prevent wasted resources.
+    }    
+       
+}
